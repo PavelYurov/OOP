@@ -134,7 +134,7 @@ public:
 			system("pause");
 		}
 	}
-	void push(double value) {
+	virtual void push(double value) {
 		try {
 			if (count >= capacity) {
 				throw('e');
@@ -179,7 +179,7 @@ public:
 		}
 		std::cout << "}" << std::endl;
 	}
-	int indexof(double value) {
+	virtual int indexof(double value) {
 		for (int i = 0; i < count; i++) {
 			if (ptr[i] == value) {
 				return i;
@@ -216,7 +216,7 @@ public:
 
 	}
 protected:
-	void remove_all_(double value) {
+	virtual void remove_all_(double value) {
 		while (indexof(value) != -1) {
 			removeat(indexof(value));
 		}
@@ -250,7 +250,7 @@ public:
 
 class mysortedarray : public myarraychild {
 protected:
-	void sort(double* mas, int size) {
+	/*void sort(double* mas, int size) {
 		int i = 0;
 		int j = size - 1;
 		double mid = mas[size / 2];
@@ -276,8 +276,8 @@ protected:
 		if (i < size) {
 			sort(&mas[i], size - i);
 		}
-	}
-	void remove_all_(double value) {
+	}*/
+	virtual void remove_all_(double value) {
 		for (int i = 0; i < count; i++) {
 			if (ptr[i] == value) {
 				removeat(i);
@@ -290,12 +290,12 @@ protected:
 	}
 public:
 	mysortedarray(int dimension = 100) : myarraychild(dimension) {
-		sort(ptr, count);
+		//sort(ptr, count);
 	}
 	mysortedarray(const myarraychild& v) : myarraychild(v) {
-		sort(ptr, count);
+		//sort(ptr, count);
 	}
-	void push(double value) {
+	virtual void push(double value) {
 		int i = 0;
 		for (; i < count; i++) {
 			if (ptr[i] >= value) {
@@ -304,7 +304,7 @@ public:
 		}
 		insert_at(value, i);
 	}
-	int indexof(double value) {
+	virtual int indexof(double value) {
 		for (int i = 0; i < count; i++) {
 			if (ptr[i] == value) {
 				return i;
@@ -334,7 +334,7 @@ int main() {
 		myarraychild arr3(arr2.remove_all(10)); arr2.print(); arr3.print(); std::cout << "\n============================\n";
 		arr3.remove_last(); arr3.print();
 		std::cout << "\n" << arr3.Size() << std::endl;
-		arr3.insert_at(999,5); arr3.print(); std::cout << "\n============================\n";
+		arr3.insert_at(999,8); arr3.print(); std::cout << "\n============================\n";
 		mysortedarray arr4(arr3); arr4.print(); arr4.push(1); arr4.push(1000); arr4.print();
 		mysortedarray arr5 = arr4.remove_all(1); arr5.print();
 	}
