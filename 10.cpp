@@ -37,6 +37,7 @@ element.field >, < value, под поиском – только element.info==v
 #include<iostream>
 #include<fstream>
 #include <typeinfo>
+#include<string.h>
 
 
 class Exception : public std::exception {
@@ -291,8 +292,10 @@ public:
 		Element<T>* res = LinkedList<T>::tail;
 		if (LinkedList<T>::head == LinkedList<T>::tail)
 			LinkedList<T>::head = LinkedList<T>::tail = NULL;
-		else
+		else {
 			LinkedList<T>::tail = LinkedList<T>::tail->prev;
+			LinkedList<T>::tail->next = NULL;
+		}
 		LinkedList<T>::count--;
 		return res;
 	}
@@ -342,11 +345,33 @@ public:
 		--LinkedList<T>::count;
 		delete ptr_to_delete;
 	}
+	virtual Element<T>* find(T filter) {
+		
+		for (Element<T>* ptr = LinkedList<T>::head; ptr != NULL; ptr = ptr->next) if (ptr->info == filter) return ptr;
+		return NULL;
+	}
 	virtual List<T>* find(bool (*f)(const T&, const T&),const T& find_data) {
 		List<T>* l = new List<T>();
 		for (Element<T>* ptr = LinkedList<T>::head; ptr != NULL; ptr = ptr->next) if (f(ptr->info,find_data)) l->push(ptr->info);
 		return l;
 		
+	}
+protected:
+	virtual List<T>* find_rec(bool (*f)(const T&, const T&), const T& find_data, Element<T>* ptr) {
+		List<T>* ptr_l;
+		if (ptr->next == NULL)
+			ptr_l = new List<T>();
+		else
+			ptr_l = find_rec(f, find_data, ptr->next);
+		if (f(ptr->info, find_data)) ptr_l->push(ptr->info);
+		return ptr_l;
+	}
+public:
+	virtual List<T>* find_recursive(bool (*f)(const T&, const T&), const T& find_data) {
+		/*List<T>* l = new List<T>();
+		for (Element<T>* ptr = LinkedList<T>::head; ptr != NULL; ptr = ptr->next) if (f(ptr->info, find_data)) l->push(ptr->info);
+		return l;*/
+		return find_rec(f, find_data, LinkedList<T>::head);
 	}
 	virtual bool save(const char* root) {
 		std::ofstream f(root);
@@ -395,7 +420,7 @@ std::ostream& operator<<(std::ostream& s, my_class& value)
 Добавление: в конец (стек)
 Удаление: с конца (стек)
 Поиск по марке, фильтр по диаметру колеса.*/
-
+/*
 enum Bike_Type
 {
 	nullt = 0,
@@ -415,75 +440,128 @@ enum age {
 	child = 0,
 	abult
 };
-
+*/
 class Byke {
 protected:
 	char* mark;
-	Bike_Type type;
-	Brake_Type brake;
+	char* type;
+	char* brake;
 	int wheel;
 	float diam;
 	bool amort;
-	age ag;
+	bool ag;
 public:
 	Byke() {
-		if(!(this->mark == new char[1])) throw Exception_Memory();
+		if(!(this->mark = new char[1])) throw Exception_Memory();
 		this->mark[0] = '~';
-		this->type = static_cast<Bike_Type>(0);
-		this->brake = static_cast<Brake_Type>(0);
+		if (!(this->type = new char[1])) throw Exception_Memory();
+		this->type[0] = '!';
+		if (!(this->brake = new char[1])) throw Exception_Memory();
+		this->brake[0] = '?';
 		this->wheel = 0;
 		this->diam = 0.0f;
 		this->amort = false;
-		this->ag = abult;
+		this->ag = 1;
 	}
 	Byke(const char* mark,
-		Bike_Type type,
-		Brake_Type brake,
+		const char* type,
+		const char* brake,
 		int wheel,
 		float diam,
 		bool amort,
-		age ag
+		bool ag
 	) {
-		if (!(this->mark == new char[strlen(mark)+1])) throw Exception_Memory();
+		if (!(this->mark = new char[strlen(mark)+1])) throw Exception_Memory();
 		strcpy_s(this->mark, strlen(mark) + 1, mark);
-		this->type = static_cast<Bike_Type>(type);
-		this->brake = static_cast<Brake_Type>(brake);
+		if (!(this->type = new char[strlen(type) + 1])) throw Exception_Memory();
+		strcpy_s(this->type, strlen(type) + 1, type);
+		if (!(this->brake = new char[strlen(brake) + 1])) throw Exception_Memory();
+		strcpy_s(this->brake, strlen(brake) + 1, brake);
 		this->wheel = wheel;
 		this->diam = diam;
 		this->amort = amort;
 		this->ag = ag;
 	}
+	Byke(const Byke& b) {
+		if (!(this->mark = new char[strlen(b.mark) + 1])) throw Exception_Memory();
+		strcpy_s(this->mark, strlen(b.mark) + 1, b.mark);
+		if (!(this->type = new char[strlen(b.type) + 1])) throw Exception_Memory();
+		strcpy_s(this->type, strlen(b.type) + 1, b.type);
+		if (!(this->brake = new char[strlen(b.brake) + 1])) throw Exception_Memory();
+		strcpy_s(this->brake, strlen(b.brake) + 1, b.brake);
+		this->wheel = b.wheel;
+		this->diam = b.diam;
+		this->amort = b.amort;
+		this->ag = b.ag;
+	}
 
-	bool filter1(const Byke& data, Byke& filt) {
-		return (data.diam > filt.diam);
+	Byke& operator=(const Byke& b) {
+		if (mark != NULL)
+			delete[]mark;
+		if (type != NULL)
+			delete[]type;
+		if (brake != NULL)
+			delete[]brake;
+		if (!(this->mark = new char[strlen(b.mark) + 1])) throw Exception_Memory();
+		strcpy_s(this->mark, strlen(b.mark) + 1, b.mark);
+		if (!(this->type = new char[strlen(b.type) + 1])) throw Exception_Memory();
+		strcpy_s(this->type, strlen(b.type) + 1, b.type);
+		if (!(this->brake = new char[strlen(b.brake) + 1])) throw Exception_Memory();
+		strcpy_s(this->brake, strlen(b.brake) + 1, b.brake);
+		this->wheel = b.wheel;
+		this->diam = b.diam;
+		this->amort = b.amort;
+		this->ag = b.ag;
+		return *this;
 	}
-	bool filter2(const Byke& data, Byke& filt) {
-		return (data.diam < filt.diam);
+
+	bool operator==(const Byke& b) {
+		return(this->mark == b.mark &&
+			this->type == b.type &&
+			this->brake == b.brake &&
+			this->wheel == b.wheel &&
+			this->diam == b.diam &&
+			this->amort == b.amort &&
+			this->ag == b.ag);
 	}
-	bool filter3(const Byke& data, Byke& filt) {
-		return (data.diam >= filt.diam);
-	}
-	bool filter4(const Byke& data, Byke& filt) {
-		return (data.diam <= filt.diam);
-	}
-	bool filter5(const Byke& data, Byke& filt) {
-		return (data.mark == filt.mark);
-	}
+
+	friend bool filter1(const Byke& data, const  Byke& filt);
+	friend bool filter2(const Byke& data, const  Byke& filt);
+	friend bool filter3(const Byke& data, const  Byke& filt);
+	friend bool filter4(const Byke& data, const  Byke& filt);
+	friend bool filter5(const Byke& data, const  Byke& filt);
 
 	~Byke() {
 		delete[]mark;
+		delete[]type;
+		delete[]brake;
+		std::cout << "\ndest, byke";
 	}
 	friend std::ostream& operator<<(std::ostream& s, Byke& value);
 	friend std::istream& operator>>(std::istream& s, Byke& value);
 };
 
 std::ostream& operator<<(std::ostream& s, Byke& value) {
-	//if (typeid(s).name() == typeid(std::ofstream).name())
-	s << value.mark << " " << value.type << " " << value.brake << " " << value.wheel << " " << value.diam << " " << value.amort << " " << value.ag << std::endl;
+	if (typeid(s).name() == typeid(std::ofstream).name())
+	{
+		s << value.mark << " " << value.type << " " << value.brake << " " << value.wheel << " " << value.diam << " " << value.amort << " " << value.ag << " ";
+	}
+	else {
+		s << "\nmark:\t" << value.mark << "\ntype:\t" << value.type << "\nbrake:\t" << value.brake << "\nwheel amount:\t" << value.wheel << "\nwheel diametr:\t" << value.diam << "\namortizator:\t" << value.amort << "\nfor abult:\t" << value.ag << std::endl;
+	}
 	return s;
 }
 std::istream& operator>>(std::istream& s, Byke& value) {
-	s >> value.mark; //>> value.type >> value.brake >> value.wheel >> value.diam >> value.amort >> value.ag;
+	std::string s1, s2, s3; int wheel; float diam; bool amort, ag;
+	if (typeid(s).name() == typeid(std::ifstream).name())
+	{
+		s >> s1 >> s2 >> s3 >> wheel >> diam >> amort >> ag;
+	}
+	else {
+		std::cout << "\nmark "; s >> s1; std::cout << "type "; std::cout << ""; s >> s2; std::cout << "brake type "; s >> s3; std::cout << "wheel amount "; s >> wheel; std::cout << "wheel diametr "; s >> diam; std::cout << "amortizator "; s >> amort; std::cout << "for adult "; s >> ag;
+	}
+	Byke tmp(s1.c_str(), s2.c_str(), s3.c_str(), wheel, diam, amort, ag);
+	value = tmp;
 	return s;
 }
 
@@ -494,6 +572,22 @@ std::istream& operator>>(std::istream& s, Byke& value) {
 	virtual 
 };*/
 
+bool filter1(const Byke& data, const  Byke& filt) {
+	return (data.diam > filt.diam);
+}
+bool filter2(const Byke& data, const  Byke& filt) {
+	return (data.diam < filt.diam);
+}
+bool filter3(const Byke& data, const  Byke& filt) {
+	return (data.diam >= filt.diam);
+}
+bool filter4(const Byke& data, const  Byke& filt) {
+	return (data.diam <= filt.diam);
+}
+bool filter5(const Byke& data, const  Byke& filt) {
+	return (data.mark == filt.mark);
+}
+
 bool test_filter1(const int& data, const int& filt) {
 	return (data == filt);
 }
@@ -503,17 +597,45 @@ bool test_filter2(const int& data,const int& filt) {
 
 int main()
 {
-	{
-		/*std::cout << "Only object\n";
+	/*{
+		std::cout << "Only object\n";
 		List<int> Q;
-		for (int i = 0; i < 5; i++){
-			Q.push(i);
-			delete Q.pop(); 
-		}*/
+		for (int i = 0; i < 5; ++i){
+			Q.push(i); 
+		}
+		for (int i = 0; i < 5; ++i) {
+			delete Q.pop();
+		}
+		
 	}
 	{
 		int arr[5];
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 5; ++i) {
+			arr[i] = i;
+		}
+		LinkedList<int>* ptr = new List<int>(arr,5);
+		ptr->push(10);
+		std::cout << *ptr << std::endl;
+		delete ptr->pop();
+
+		delete ptr;
+	}
+	{
+		int arr[5];
+		for (int i = 0; i < 5; ++i) {
+			arr[i] = i;
+		}
+		LinkedList<int>* ptr; List<int>* ptr2 = new List<int>(arr, 5);
+		ptr = ptr2;
+		ptr->push(10);
+		std::cout << *ptr << std::endl;
+		delete ptr->pop();
+		delete ptr2;
+		//delete ptr;
+	}
+	{
+		int arr[5];
+		for (int i = 0; i < 5; ++i)
 			arr[i] = i;
 		List<int> Q(arr,5);
 		Q.insert(1,11);
@@ -536,6 +658,39 @@ int main()
 		std::cout << Q;
 		Q.load("out.txt");
 		std::cout << Q;
+	}
+
+	{
+		int arr[5];
+		for (int i = 0; i < 5; ++i) {
+			arr[i] = i;
+		}
+		LinkedList<int>* ptr; List<int>* ptr2 = new List<int>(arr, 5);
+		ptr = ptr2;
+		ptr->push(10);
+		std::cout << *ptr << std::endl;
+		delete ptr->pop();
+		List<int>* ptr3 = dynamic_cast<List<int>*>(ptr);
+		ptr3->push(10);
+		std::cout << *ptr3 << std::endl;
+		delete ptr3->pop();
+		delete ptr2;
+	}*/
+	{
+		List<Byke> Q;
+		/*for (int i = 0; i < 2; ++i) {
+			Byke a;
+			std::cin >> a;
+			Q.push(a);
+			std::cout << Q;
+		}
+		Q.save("out.txt");*/
+		Q.load("out.txt");std::cout << Q;
+		bool (*f)(const Byke&, const Byke&);
+		f = filter1;
+		List<Byke>* ptr = Q.find_recursive(f, Byke("*", "*", "*", 0, 0, 0, 0));
+		std::cout << *ptr;
+		delete ptr;
 	}
 	/*//if (true)
 	//{
