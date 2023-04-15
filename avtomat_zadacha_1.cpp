@@ -139,6 +139,14 @@ protected:
 		}
 		delete mid;
 	}
+	void fresh_memory() {
+	if (arr != NULL)
+		for (long long i = 0; i < obj_amount; ++i) {
+			if (arr[i] != NULL) delete arr[i];
+		}
+	if (arr != NULL) delete[] arr;
+	arr = NULL;
+	}
 public:
 	generation() {
 		best_fitness = 0;
@@ -216,26 +224,12 @@ public:
 		return min_fitness;
 	}
 
-	/*virtual long long find_best_fitness(Obj<bool>** best_arr, const long long index) {
-		long long best_fitness = 0;
-		for (long long i = 1; i < obj_amount; ++i) {
-			if (arr[i]->fitness_mean > arr[best_fitness] -> fitness_mean) {
-				if(best_arr[])
-				best_fitness = i;
-			}
-		}
-		return best_fitness;
-	}*/
 	virtual void train(V (*f)(Obj<T>* const)) = 0;
 	virtual void select(const long long best_amount) = 0;
 	virtual generation<T,V>* crossover() = 0;
 	virtual void work() = 0;
 
-	//void print() {
-	//	for (int i = 0; i < obj_amount; ++i) {
-	//		//std::cout << std::endl << i << "\t" << arr[i];
-	//	}
-	//}
+
 	virtual void save(const long long ba, const char* str = "out.txt") {
 		if (ba <= 0) throw "\n>less that 1 objext to save";
 		std::ofstream f(str);
@@ -351,10 +345,11 @@ public:
 
 			//std::cout << std::endl << best_arr[i]->fitness;
 		}
-
+																																	//добавить вероятность выбора случайного в лучшие
 		//best_fitness = best_arr[0]->fitness;
 
 		this->best_fitness = this->arr[0]->fitness;
+		this->fresh_memory();
 	}
 
 	virtual generation<bool,V>* crossover() {
@@ -427,13 +422,15 @@ int calculate(Obj<bool>* const a) {
 
 int main() {
 	srand(time(NULL));
-	const int BEST_AMOUNT = 2;
+	const int BEST_AMOUNT = 20;
 	int (*f)(Obj<bool>* const);
 	f = calculate;
 	double timer_start = clock();
-	generation<bool,int>* test1 = new ai1<int>(1000, 100, 5);
+	generation<bool,int>* test1 = new ai1<int>(10000, 200, 3);
 
 	while (!_kbhit()) {
+		
+		double timer = (double)clock();
 
 		test1->train(f);
 
@@ -445,7 +442,7 @@ int main() {
 
 		test1 = test2;
 
-		std::cout << "\t time: " << ((double)clock() - timer_start) / CLOCKS_PER_SEC << std::endl << "\n======================================================";
+		std::cout << "\t time: " << ((double)clock() - timer) / CLOCKS_PER_SEC << std::endl << "\n======================================================";
 	}
 	test1->save(BEST_AMOUNT, "output.txt");
 	delete test1;
